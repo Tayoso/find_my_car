@@ -1,0 +1,11 @@
+make,model,age,body_type,fuel_type,transmission_type,mileage,cost
+Toyota,RAV4,2,suv,hybrid,automatic,25000,32000
+Honda,CR-V,3,suv,petrol,automatic,35000,28000
+Volkswagen,Passat,4,wagon,diesel,automatic,45000,26000
+Toyota,Camry,1,sedan,hybrid,automatic,15000,30000
+Ford,Explorer,2,suv,petrol,automatic,28000,35000
+Volvo,XC90,3,suv,hybrid,automatic,32000,42000
+BMW,X5,4,suv,diesel,automatic,40000,45000
+Subaru,Outback,2,wagon,petrol,automatic,22000,33000
+Honda,Pilot,1,suv,petrol,automatic,18000,38000
+Toyota,Highlander,2,suv,hybrid,automatic,27000,39000 

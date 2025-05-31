@@ -1,9 +1,33 @@
-[tool.ruff]
-line-length = 100
-target-version = "py39"
+[project]
+name = "find_my_car"
+version = "0.1.0"
+description = "An intelligent car recommendation system using natural language processing"
+authors = [
+    {name = "beani", email = "beani@gmail.com"}
+]
+dependencies = [
+    "streamlit>=1.31.0",
+    "pandas>=2.2.0",
+    "torch>=2.2.0",
+    "transformers>=4.37.0",
+    "python-dotenv>=1.0.0",
+    "huggingface-hub>=0.21.4",
+    "accelerate>=0.27.2",
+    "bitsandbytes>=0.42.0",
+    "sentencepiece>=0.2.0",
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "MIT"}
 
-[tool.ruff.lint]
-select = ["E", "F", "I"]
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+select = ["E", "F", "I", "N", "W", "B", "UP"]
 
 # Exclude a variety of commonly ignored directories.
 exclude = [
@@ -30,5 +54,5 @@ exclude = [
     "venv",
 ]
 
-[tool.ruff.lint.isort]
-known-first-party = ["app"] 
+[tool.ruff.isort]
+known-first-party = ["find_my_car"] 

@@ -45,9 +45,9 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-4. Install dependencies using uv:
+4. Install the package in development mode:
 ```bash
-uv pip install -r requirements.txt
+uv pip install -e .
 ```
 
 5. Create a `.env` file in the project root and add your Hugging Face token:
@@ -67,9 +67,11 @@ HF_TOKEN=your_token_here
    - mileage
    - cost
 
+   A sample database is provided in `find_my_car/data/sample_cars.csv`.
+
 2. Run the application:
 ```bash
-streamlit run app.py
+python -m find_my_car.app
 ```
 
 3. Upload your car database CSV file through the web interface
@@ -86,11 +88,21 @@ streamlit run app.py
 
 ## Project Structure
 
-- `app.py`: Main Streamlit application
-- `test_output.py`: Test script for the recommendation system
-- `requirements.txt`: Python package dependencies
-- `.env`: Environment variables (not tracked in git)
-- `sample_cars.csv`: Example car database
+```
+find_my_car/
+├── __init__.py           # Package initialization
+├── app.py               # Streamlit web interface
+├── recommender.py       # Core recommendation logic
+└── data/
+    └── sample_cars.csv  # Example car database
+```
+
+## Development
+
+This project uses modern Python tooling:
+- `pyproject.toml` for project configuration
+- `uv` for fast, reliable package management
+- `ruff` for linting and formatting
 
 ## License
 
