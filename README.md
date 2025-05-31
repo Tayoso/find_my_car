@@ -21,17 +21,22 @@ An intelligent car recommendation system that helps users find their ideal car b
 
 - Python 3.9+
 - Hugging Face account and API token
-- Required Python packages (see requirements.txt)
+- uv package manager (faster Python package installation)
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/find_my_car.git
+git clone https://github.com/Tayoso/find_my_car.git
 cd find_my_car
 ```
 
-2. Create and activate a virtual environment:
+2. Install uv (if not already installed):
+```bash
+pip install uv
+```
+
+3. Create and activate a virtual environment:
 ```bash
 python -m venv .venv
 # On Windows:
@@ -40,12 +45,12 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-3. Install dependencies:
+4. Install dependencies using uv:
 ```bash
-pip install -r requirements.txt
+uv pip install -r requirements.txt
 ```
 
-4. Create a `.env` file in the project root and add your Hugging Face token:
+5. Create a `.env` file in the project root and add your Hugging Face token:
 ```
 HF_TOKEN=your_token_here
 ```
@@ -73,10 +78,11 @@ streamlit run app.py
 
 ## Example Queries
 
-- "I want a family car that can go long distance and is very durable"
-- "Looking for a fuel-efficient car for city driving"
-- "Need a luxury SUV with good mileage"
-- "Want a budget-friendly compact car"
+- "I want a family car that can go long distance and very durable."
+- "What's the best SUV under $30,000?"
+- "I need a fuel-efficient car with low mileage"
+- "Show me automatic transmission cars with less than 30,000 miles"
+- "What's the newest electric car in the database?"
 
 ## Project Structure
 
