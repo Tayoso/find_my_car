@@ -1,0 +1,12 @@
+streamlit>=1.31.0
+pandas>=2.2.0
+python-dotenv>=1.0.0
+ruff==0.3.2
+langchain==0.1.9
+langchain-community==0.0.24
+huggingface-hub==0.21.4
+transformers>=4.37.0
+torch>=2.2.0
+accelerate==0.27.2
+bitsandbytes==0.42.0
+sentencepiece==0.2.0 
