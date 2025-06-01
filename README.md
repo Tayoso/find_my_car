@@ -71,7 +71,7 @@ HF_TOKEN=your_token_here
 
 2. Run the application:
 ```bash
-python -m find_my_car.app
+streamlit run app.py
 ```
 
 3. Upload your car database CSV file through the web interface

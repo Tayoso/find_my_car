@@ -15,36 +15,47 @@ import torch
 from transformers import pipeline
 from dotenv import load_dotenv
 
-# Load environment variables
+# Load environment variables (for any potential API keys or configurations)
 load_dotenv()
 
-# Initialize Streamlit page configuration
+# Configure the Streamlit page with a car-themed layout
 st.set_page_config(
     page_title="Find My Car Assistant",
     page_icon="🚗",
     layout="wide"
 )
 
-# Initialize session state
-if "messages" not in st.session_state:
+# Initialize session state variables to persist data between reruns
+if "messages" not in st.session_state:  # Store chat history
     st.session_state.messages = []
-if "df" not in st.session_state:
+if "df" not in st.session_state:  # Store the car database
     st.session_state.df = None
-if "classifier" not in st.session_state:
+if "classifier" not in st.session_state:  # Store the ML model
     with st.spinner("Loading model... this may take a few minutes"):
         try:
-            # Use a zero-shot classification model
+            # Initialize the zero-shot classifier for understanding user requirements
+            # Using BART model which is good for classification tasks and is publicly available
             st.session_state.classifier = pipeline(
                 "zero-shot-classification",
-                model="facebook/bart-large-mnli",
-                token=os.getenv("HF_TOKEN")
+                model="facebook/bart-large-mnli"
             )
         except Exception as e:
             st.error(f"Error loading model: {str(e)}")
             st.stop()
 
 def load_csv(file) -> Optional[pd.DataFrame]:
-    """Load and validate a CSV file containing car data."""
+    """
+    Load and validate a CSV file containing car data.
+    
+    Parameters:
+        file: The uploaded CSV file object
+        
+    Returns:
+        pd.DataFrame or None: Returns the loaded DataFrame if valid, None if invalid
+        
+    Validates that all required columns are present in the uploaded file.
+    Required columns: make, model, age, body_type, fuel_type, transmission_type, mileage, cost
+    """
     try:
         df = pd.read_csv(file)
         required_columns = [
@@ -83,25 +94,35 @@ def format_car_features(df: pd.DataFrame) -> str:
     )
 
 def generate_response(prompt: str) -> str:
-    """Generate response using the text classification model."""
+    """
+    Generate response using the zero-shot text classification model.
+    
+    Parameters:
+        prompt (str): User's input text describing their car preferences
+        
+    Returns:
+        str: A formatted response containing identified car categories
+        
+    The function uses a zero-shot classifier to match user requirements against
+    predefined car categories. Categories with confidence > 0.7 are included.
+    """
     try:
-        # Define car categories/features to check against
+        # Define car categories for classification
         categories = [
             "family car", "long distance", "durable", "fuel efficient",
             "luxury", "sporty", "budget friendly", "compact"
         ]
         
-        # Check user's requirements against each category
         results = []
         try:
-            # Single classification for all categories
+            # Perform multi-label classification on user input
             result = st.session_state.classifier(
                 sequences=prompt,
                 candidate_labels=categories,
                 multi_label=True
             )
             
-            # Extract categories with high confidence
+            # Filter categories with high confidence (>0.7)
             for label, score in zip(result["labels"], result["scores"]):
                 if score > 0.7:
                     results.append(label)
@@ -113,7 +134,7 @@ def generate_response(prompt: str) -> str:
         if not results:
             return "I couldn't clearly identify your car preferences. Could you please be more specific about what you're looking for in a car?"
         
-        # Format the response
+        # Format the identified categories into a response
         response = "Based on your requirements, you're looking for:\n"
         for category in results:
             response += f"- {category.title()}\n"
@@ -124,10 +145,28 @@ def generate_response(prompt: str) -> str:
         return None
 
 def filter_cars(df: pd.DataFrame, requirements: List[str]) -> pd.DataFrame:
-    """Filter cars based on requirements."""
+    """
+    Filter the car database based on identified requirements.
+    
+    Parameters:
+        df (pd.DataFrame): The car database
+        requirements (List[str]): List of identified car categories
+        
+    Returns:
+        pd.DataFrame: Filtered dataset matching the requirements
+        
+    Applies specific filtering rules for each category:
+    - family car: SUVs and wagons
+    - long distance: Hybrid and diesel vehicles
+    - durable: Newer cars with lower mileage
+    - fuel efficient: Hybrid vehicles
+    - luxury: Cars over $40,000
+    - budget friendly: Cars under $30,000
+    - compact: Sedans and hatchbacks
+    """
     filtered_df = df.copy()
     
-    # Apply filters based on identified requirements
+    # Apply category-specific filters
     if "family car" in requirements:
         filtered_df = filtered_df[filtered_df["body_type"].isin(["suv", "wagon"])]
     if "long distance" in requirements:
