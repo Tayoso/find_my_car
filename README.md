@@ -86,16 +86,6 @@ streamlit run app.py
 - "Show me automatic transmission cars with less than 30,000 miles"
 - "What's the newest electric car in the database?"
 
-## Project Structure
-
-```
-find_my_car/
-├── __init__.py           # Package initialization
-├── app.py               # Streamlit web interface
-├── recommender.py       # Core recommendation logic
-└── data/
-    └── sample_cars.csv  # Example car database
-```
 
 ## Development
 
@@ -103,11 +93,3 @@ This project uses modern Python tooling:
 - `pyproject.toml` for project configuration
 - `uv` for fast, reliable package management
 - `ruff` for linting and formatting
-
-## License
-
-MIT License
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. 
