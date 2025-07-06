@@ -45,7 +45,7 @@ def format_car_features(df: pd.DataFrame) -> str:
         f"- Body types: {', '.join(features['body_types'])}\n"
         f"- Fuel types: {', '.join(features['fuel_types'])}\n"
         f"- Transmission types: {', '.join(features['transmission_types'])}\n"
-        f"- Price range: ${features['price_range'][0]:,.2f} - ${features['price_range'][1]:,.2f}\n"
+        f"- Price range: £{features['price_range'][0]:,.2f} - £{features['price_range'][1]:,.2f}\n"
         f"- Age range: {features['age_range'][0]} - {features['age_range'][1]} years\n"
         f"- Mileage range: {features['mileage_range'][0]:,.0f} - {features['mileage_range'][1]:,.0f} miles"
     )

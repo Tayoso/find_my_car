@@ -136,7 +136,7 @@ def get_car_recommendation(user_query: str, df: pd.DataFrame) -> str:
                 f"   • {car['body_type'].title()}, {car['fuel_type'].title()} fuel\n"
                 f"   • {car['transmission_type'].title()} transmission\n"
                 f"   • {car['mileage']:,.0f} miles\n"
-                f"   • ${car['cost']:,.2f}\n\n"
+                f"   • £{car['cost']:,.2f}\n\n"
             )
         
         return response

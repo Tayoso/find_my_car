@@ -33,7 +33,7 @@ if "df" not in st.session_state:  # Store the car database
 if "classifier" not in st.session_state:  # Store the ML model
     with st.spinner("Loading model... this may take a few minutes"):
         try:
-            # Initialize the zero-shot classifier for understanding user requirements
+            # Initialize the zero-shot classifier (Mistral - which serves as an agent that can understand user requirements) for understanding user requirements
             # Using BART model which is good for classification tasks and is publicly available
             st.session_state.classifier = pipeline(
                 "zero-shot-classification",
@@ -88,7 +88,7 @@ def format_car_features(df: pd.DataFrame) -> str:
         f"- Body types: {', '.join(features['body_types'])}\n"
         f"- Fuel types: {', '.join(features['fuel_types'])}\n"
         f"- Transmission types: {', '.join(features['transmission_types'])}\n"
-        f"- Price range: ${features['price_range'][0]:,.2f} - ${features['price_range'][1]:,.2f}\n"
+        f"- Price range: £{features['price_range'][0]:,.2f} - £{features['price_range'][1]:,.2f}\n"
         f"- Age range: {features['age_range'][0]} - {features['age_range'][1]} years\n"
         f"- Mileage range: {features['mileage_range'][0]:,.0f} - {features['mileage_range'][1]:,.0f} miles"
     )
@@ -160,8 +160,8 @@ def filter_cars(df: pd.DataFrame, requirements: List[str]) -> pd.DataFrame:
     - long distance: Hybrid and diesel vehicles
     - durable: Newer cars with lower mileage
     - fuel efficient: Hybrid vehicles
-    - luxury: Cars over $40,000
-    - budget friendly: Cars under $30,000
+    - luxury: Cars over £40,000
+    - budget friendly: Cars under £30,000
     - compact: Sedans and hatchbacks
     """
     filtered_df = df.copy()
@@ -222,7 +222,7 @@ def get_car_recommendation(user_query: str, df: pd.DataFrame) -> str:
                 f"   • {car['body_type'].title()}, {car['fuel_type'].title()} fuel\n"
                 f"   • {car['transmission_type'].title()} transmission\n"
                 f"   • {car['mileage']:,.0f} miles\n"
-                f"   • ${car['cost']:,.2f}\n\n"
+                f"   • £{car['cost']:,.2f}\n\n"
             )
         
         return response

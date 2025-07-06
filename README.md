@@ -81,7 +81,7 @@ streamlit run app.py
 ## Example Queries
 
 - "I want a family car that can go long distance and very durable."
-- "What's the best SUV under $30,000?"
+- "What's the best SUV under £30,000?"
 - "I need a fuel-efficient car with low mileage"
 - "Show me automatic transmission cars with less than 30,000 miles"
 - "What's the newest electric car in the database?"
@@ -109,5 +109,10 @@ This project uses modern Python tooling:
 MIT License
 
 ## Contributing
+
+## Next steps
+- Test with larger data set
+- Add unit tests
+
 
 Contributions are welcome! Please feel free to submit a Pull Request. 
