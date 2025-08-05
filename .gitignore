@@ -1,10 +1,7 @@
 # Environment variables
 .env
-
-# Virtual environment
-.venv/
-venv/
-ENV/
+.env.local
+.env.*.local
 
 # Python
 __pycache__/
@@ -27,17 +24,28 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+MANIFEST
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
 
 # IDE
-.idea/
 .vscode/
+.idea/
 *.swp
 *.swo
+*~
 
-# Streamlit
-.streamlit/
+# OS
+.DS_Store
+Thumbs.db
 
-# Project specific
-*.csv
-!sample_cars.csv
-.ruff_cache/ 
+# Logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp 

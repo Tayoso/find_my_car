@@ -1,58 +1,30 @@
 [project]
 name = "find_my_car"
 version = "0.1.0"
-description = "An intelligent car recommendation system using natural language processing"
+description = "Vehicle Recommendation Chatbot using LangChain RAG"
 authors = [
-    {name = "beani", email = "beani@gmail.com"}
+    {name = "Vehicle Chatbot Team"}
 ]
 dependencies = [
-    "streamlit>=1.31.0",
-    "pandas>=2.2.0",
-    "torch>=2.2.0",
-    "transformers>=4.37.0",
-    "python-dotenv>=1.0.0",
-    "huggingface-hub>=0.21.4",
-    "accelerate>=0.27.2",
-    "bitsandbytes>=0.42.0",
-    "sentencepiece>=0.2.0",
+    "langchain==0.1.0",
+    "langchain-community==0.0.10",
+    "langchain-openai==0.0.5",
+    "pandas==2.1.4",
+    "streamlit==1.29.0",
+    "python-dotenv==1.0.0",
+    "openai>=1.10.0,<2.0.0",
+    "faiss-cpu==1.7.4",
+    "sentence-transformers==2.2.2",
+    "langchain-core>=0.1.23",
 ]
 requires-python = ">=3.9"
-readme = "README.md"
-license = {text = "MIT"}
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
-[tool.ruff]
-line-length = 88
-target-version = "py39"
-select = ["E", "F", "I", "N", "W", "B", "UP"]
+[tool.hatch.build.targets.wheel]
+packages = ["."]
 
-# Exclude a variety of commonly ignored directories.
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "venv",
-]
-
-[tool.ruff.isort]
-known-first-party = ["find_my_car"] 
+[tool.uv]
+dev-dependencies = []
