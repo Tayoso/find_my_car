@@ -31,6 +31,7 @@ A sophisticated vehicle recommendation chatbot powered by **Llama 3** with autom
 ### Prerequisites
 - Python 3.9+
 - Virtual environment (recommended)
+- Ollama with Llama 3 model installed
 
 ### Installation
 
@@ -55,42 +56,42 @@ A sophisticated vehicle recommendation chatbot powered by **Llama 3** with autom
    pip install -r requirements.txt
    ```
 
-3. **Run the test script:**
+3. **Install and run Ollama with Llama 3:**
    ```bash
-   # Test all three questions from README
-   python test_all_questions.py
+   # Install Ollama (if not already installed)
+   # Visit: https://ollama.ai/
+   
+   # Pull Llama 3 model
+   ollama pull llama3
    ```
 
-4. **Run the Streamlit app:**
+4. **Run the tests:**
+   ```bash
+   # Test Llama 3 connection
+   python tests/test_llama3_connection.py
+   
+   # Test all questions from README
+   python tests/test_all_questions.py
+   ```
+
+5. **Run the Streamlit app:**
    ```bash
    # Start the web application
-   python -m streamlit run src/apps/app_langchain_auto.py
+   streamlit run src/apps/app_langchain_auto.py
    ```
 
-5. **Open your browser:**
+6. **Open your browser:**
    Navigate to `http://localhost:8501` (or the URL shown in terminal)
 
 ## 🧪 Testing
 
 ### **Run All Tests**
 ```bash
+# Test Llama 3 connection and functionality
+python tests/test_llama3_connection.py
+
 # Test all three questions with memory retention
 python tests/test_all_questions.py
-```
-
-### **Individual Test Scripts**
-```bash
-# Test BMW scenario (Question 1)
-python tests/test_bmw_scenario.py
-
-# Test Electric vehicle scenario (Question 2)
-python tests/test_electric_scenario.py
-
-# Test Diesel hatchback scenario (Question 3)
-python tests/test_question3.py
-
-# Test flexible price ranges
-python tests/test_flexible_price.py
 ```
 
 ### **Expected Test Results**
@@ -102,7 +103,7 @@ python tests/test_flexible_price.py
 
 ### **Start the App**
 ```bash
-python -m streamlit run src/apps/app_langchain_auto.py
+streamlit run src/apps/app_langchain_auto.py
 ```
 
 ### **Features**
@@ -122,55 +123,37 @@ python -m streamlit run src/apps/app_langchain_auto.py
 find_my_car/
 ├── src/
 │   ├── core/
-│   │   └── vehicle_rag_langchain_auto.py    # Main RAG engine
+│   │   ├── vehicle_rag_enhanced.py           # Main Llama 3 RAG engine
+│   │   └── vehicle_rag_langchain_auto.py     # Alternative RAG implementation
 │   ├── apps/
-│   │   └── app_langchain_auto.py            # Streamlit web interface
+│   │   └── app_langchain_auto.py             # Streamlit web interface
 │   └── data/
-│       └── stocked_cars.csv                  # Vehicle database
+│       └── stocked_cars.csv                   # Vehicle database
 ├── tests/
-│   ├── test_all_questions.py                # Comprehensive test suite
-│   ├── test_bmw_scenario.py                 # BMW scenario tests
-│   ├── test_electric_scenario.py            # Electric vehicle tests
-│   ├── test_question3.py                    # Diesel hatchback tests
-│   ├── test_flexible_price.py               # Price range tests
-│   ├── test_performance.py                  # Performance tests
-│   ├── test_deep_examples.py                # Deep conversation tests
-│   └── test_llama3_flow.py                  # Llama3 integration tests
-├── docs/
-│   ├── TECHNICAL_DOCUMENTATION.md           # Technical deep dive
-│   ├── REFACTOR_SUMMARY.md                  # Refactoring history
-│   └── PERFORMANCE_SUMMARY.md               # Performance analysis
-├── README.md                                 # This file
-├── requirements.txt                          # Python dependencies
-└── main.py                                  # Entry point
+│   ├── test_all_questions.py                 # Comprehensive test suite
+│   └── test_llama3_connection.py             # Llama 3 connection tests
+├── README.md                                  # This file
+└── requirements.txt                           # Python dependencies
 ```
 
 ## 🏗️ Architecture
 
 ### **Llama 3 Integration**
 
-The system supports two Llama 3 deployment options:
+The system uses Llama 3 through Ollama for all semantic operations:
 
-#### **Option 1: Ollama (Recommended)**
 ```python
-from core.vehicle_rag import VehicleRAG
+from src.core.vehicle_rag_enhanced import Llama3SemanticRAG
 
-# Initialize with Ollama
-rag = VehicleRAG("src/data/stocked_cars.csv")
+# Initialize with Llama 3
+rag = Llama3SemanticRAG("src/data/stocked_cars.csv")
 ```
 
-#### **Option 2: LlamaCpp (Local GGUF)**
-```python
-from core.vehicle_rag import VehicleRAG
-
-# Initialize with LlamaCpp
-rag = VehicleRAG("src/data/stocked_cars.csv", use_llamacpp=True)
-```
-
-**For LlamaCpp, set your model path:**
-```bash
-export LLAMA_MODEL_PATH="path/to/llama-3-70b-instruct.Q5_K_M.gguf"
-```
+### **Core Components**
+- **Semantic Search**: Llama 3 analyzes all vehicles for relevance
+- **Preference Extraction**: Llama 3 extracts user preferences from natural language
+- **Reasoning Agent**: Llama 3 provides intelligent recommendations
+- **Question Flow**: Llama 3 determines the next most relevant question
 
 ## 🎯 Usage Examples
 
@@ -195,10 +178,10 @@ Assistant: [Matches exact criteria + asks for passenger count]
 ## 🔧 Configuration
 
 ### **Environment Variables**
-Create a `.env` file:
+Create a `.env` file (optional):
 ```env
-# For LlamaCpp (optional)
-LLAMA_MODEL_PATH=path/to/your/llama-3-model.gguf
+# For custom Ollama settings
+OLLAMA_HOST=http://localhost:11434
 ```
 
 ### **Data Format**
@@ -218,19 +201,16 @@ The system expects a CSV with these columns:
 ### **Run System Tests**
 ```bash
 # Test Llama 3 integration
-uv run python -c "
-import sys; sys.path.append('src')
-from core.vehicle_rag import VehicleRAG
-rag = VehicleRAG('src/data/stocked_cars.csv')
-result = rag.process_with_llama3('i need a diesel hatchback under 17000')
-print('✅ Llama 3 working:', result['llama3_managed'])
-"
+python tests/test_llama3_connection.py
+
+# Test all scenarios from README
+python tests/test_all_questions.py
 ```
 
 ### **Test Different Queries**
 ```bash
-# Test various scenarios
-uv run streamlit run main.py
+# Start the web application
+streamlit run src/apps/app_langchain_auto.py
 ```
 
 ## 🚀 Llama 3 Features
@@ -248,20 +228,58 @@ uv run streamlit run main.py
 - **Error Recovery** - Graceful fallback handling
 - **Performance** - Faster than previous versions
 
-## 🔄 Migration from Llama 2
+## 🔄 Conversation Flow
 
-The system has been upgraded from Llama 2 to Llama 3:
+The system follows this intelligent flow:
 
-### **Key Changes**
-- ✅ **Better Performance** - Llama 3 is more capable
-- ✅ **Improved Reasoning** - Better understanding of complex queries
-- ✅ **Enhanced Context** - Better conversation memory
-- ✅ **Structured Output** - More reliable JSON parsing
+1. **User Input** → Llama 3 extracts preferences
+2. **Semantic Search** → Llama 3 finds relevant vehicles
+3. **Reasoning** → Llama 3 provides recommendations
+4. **Next Question** → Llama 3 determines what to ask next
+5. **Memory Update** → System remembers preferences
 
-### **Backward Compatibility**
-- ✅ **Same Interface** - No code changes needed
-- ✅ **Fallback Support** - Works when Llama 3 unavailable
-- ✅ **Data Compatibility** - Same CSV format
+### **Example Flows**
+
+#### **Question 1: BMW Scenario**
+```
+User: "I want a BMW below £20000"
+System: [Extracts: make=BMW, price<£20000]
+System: [Asks: "How many people will usually be in the car?"]
+
+User: "6 to 8 passenger"
+System: [Extracts: passengers=6-8, body_type=SUV (automatic)]
+System: [Provides: BMW SUVs under £20000 for 6-8 passengers]
+```
+
+#### **Question 2: Electric Family Scenario**
+```
+User: "Show me electric vehicles for my family"
+System: [Extracts: fuel_type=electric, family_friendly=true]
+System: [Asks: "How many people will usually be in the car?"]
+
+User: "3 to 5 passenger"
+System: [Extracts: passengers=3-5]
+System: [Asks: "What's your budget range?"]
+
+User: "Price range between 10 and 25k"
+System: [Extracts: price_range=£10000-£25000]
+System: [Asks: "Which body types do you prefer?"]
+
+User: "SUV"
+System: [Extracts: body_type=SUV]
+System: [Provides: Electric SUVs for 3-5 passengers, £10-25k, family-friendly]
+```
+
+#### **Question 3: Diesel Hatchback Scenario**
+```
+User: "i need a new diesel hatchback less than 17000"
+System: [Extracts: fuel_type=diesel, body_type=hatchback, price<£17000]
+System: [Asks: "How many people will usually be in the car?"]
+
+User: "3 to 5 passengers"
+System: [Extracts: passengers=3-5]
+System: [Provides: Diesel hatchbacks under £17000 for 3-5 passengers]
+```
 
 ## 🤝 Contributing
 
@@ -285,29 +303,3 @@ This project is licensed under the MIT License.
 ---
 
 **🎯 Ready to find your perfect vehicle with Llama 3!** 
-
-
-
-The flow is as below: Number of People in the car >> price range >> body type ...
-
-- Question 1
-User: I want a BMW below £20000.
-Prompt 2: 6 to 8 passenger
-Answer: Should be all BMWs below 20k based on memory. 
-Prompt 3: SUV
-Answer: should be all BMW SUVs below 20k. Make sure you test this.
-
-- Question 2
-User: "Show me electric vehicles for my family"
-Prompt 2: 3 to 5 passenger
-Answer: Should be all electrics with 3-5 passengers and family friendly based on memory. 
-Prompt 3: Price range between 10 and 25k
-Answer: should be all electrics with 3-5 passengers and family friendly and within 10-25k based on memory. Make sure you test this.
-Prompt 4: Body type
-Answer: should be all electrics with 3-5 passengers and family friendly and within 10-25k and the body type selected based on memory. Make sure you test this.
-
-- Question 3
-User: "i need a new diesel hatchback less than 17000"
-Prompt 2: 3 to 5 passengers
-Answer: Should be all diesel fuel type and hatchbacks below 17k based on memory. This is final answer given body type, fuel, type and price has bene given. Test that this works. 
-The end...

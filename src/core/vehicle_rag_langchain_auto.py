@@ -52,7 +52,7 @@ class FastVehicleRAG:
         
         # Load vehicle data
         self.load_vehicle_data()
-    
+        
     def load_vehicle_data(self):
         """Load vehicle data for fast local processing."""
         if not os.path.exists(self.csv_path):
