@@ -1,0 +1,18 @@
+[project]
+name = "car-sales-assistant"
+version = "0.1.0"
+description = "A smart car sales chatbot powered by Claude 3.5 Sonnet"
+authors = [
+    {name = "Car Sales Assistant", email = "ososanyatayo@gmail.com"}
+]
+dependencies = [
+    "streamlit>=1.28.0",
+    "pandas>=2.0.0",
+    "anthropic>=0.7.0",
+    "python-dotenv>=1.0.1",
+    "ollama>=0.5.3",
+]
+requires-python = ">=3.8"
+
+[tool.uv]
+dev-dependencies = []
