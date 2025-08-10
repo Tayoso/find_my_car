@@ -1,25 +1,14 @@
 # 🚗 Car Sales Assistant
 
-A smart car sales chatbot with access to car inventory data. **Two versions available:**
-
-## 🤖 **Claude Version** (Recommended)
-- **AI Model**: Claude 3.5 Sonnet (Anthropic)
-- **Best for**: Production use, reliable responses, structured data handling
-- **Cost**: Pay-per-use API calls
-
-## 🦙 **Llama Version** (Local)
-- **AI Model**: Llama 3.1/3.2 (via Ollama)
-- **Best for**: Local deployment, privacy, cost-effective
-- **Cost**: Free (runs locally)
+A smart car sales chatbot powered by Claude 3.5 Sonnet with access to car inventory data.
 
 ## ✨ Features
 
-- **AI-Powered Recommendations**: Intelligent car recommendations from both Claude and Llama
+- **AI-Powered Recommendations**: Uses Claude 3.5 Sonnet for intelligent car recommendations
 - **Real Inventory Data**: Access to 5,000+ cars with detailed information
 - **Smart Filtering**: Filter by make, model, body type, price range, and fuel type
 - **VRM Tracking**: Includes Vehicle Registration Mark (VRM) for each car
 - **Streamlit Interface**: Beautiful, interactive web interface
-- **Memory & Context**: Maintains conversation history and provides relevant car data
 
 ## 🚀 Quick Start
 
@@ -27,8 +16,7 @@ A smart car sales chatbot with access to car inventory data. **Two versions avai
 
 - Python 3.8+
 - `uv` package manager
-- **For Claude version**: Anthropic API key
-- **For Llama version**: Ollama installed locally
+- Anthropic API key
 
 ### Installation
 
@@ -43,35 +31,19 @@ A smart car sales chatbot with access to car inventory data. **Two versions avai
    uv sync
    ```
 
-3. **Choose your version:**
-
-   **🤖 Claude Version (Recommended):**
+3. **Set up your API key**
    - Create a `.env` file in the project root
    - Add your Anthropic API key:
      ```
      ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
      ```
-   - Run the app:
-     ```bash
-     uv run streamlit run claude_chatbot_app.py
-     ```
 
-   **🦙 Llama Version (Local):**
-   - Install Ollama: https://ollama.ai/
-   - Pull a Llama model:
-     ```bash
-     ollama pull llama3.1
-     ```
-   - Start Ollama server:
-     ```bash
-     ollama serve
-     ```
-   - Run the app:
-     ```bash
-     uv run streamlit run llama_chatbot_app.py
-     ```
+4. **Run the app**
+   ```bash
+   uv run streamlit run claude_chatbot_app.py
+   ```
 
-4. **Open your browser**
+5. **Open your browser**
    - Navigate to `http://localhost:8501`
    - Start asking about cars!
 
@@ -98,21 +70,16 @@ Try these queries in the app:
 ## 🔧 Technical Details
 
 - **Framework**: Streamlit
-- **AI Models**: 
-  - Claude 3.5 Sonnet (Anthropic) - Production ready
-  - Llama 3.1/3.2 (Ollama) - Local deployment
+- **AI Model**: Claude 3.5 Sonnet (Anthropic)
 - **Package Manager**: uv
 - **Data Processing**: Pandas
 - **Environment**: python-dotenv
-- **Memory**: Session-based conversation history
-- **Context**: Dynamic car data filtering and injection
 
 ## 📁 Project Structure
 
 ```
 basic_chatbot/
-├── claude_chatbot_app.py    # Claude version (recommended)
-├── llama_chatbot_app.py     # Llama version (local)
+├── claude_chatbot_app.py    # Main Streamlit application
 ├── data/
 │   └── stocked_cars.csv     # Car inventory data
 ├── pyproject.toml           # Project dependencies
@@ -129,7 +96,7 @@ Run the test suite to verify everything is working:
 uv run python test_app.py
 ```
 
-## 🔑 API Key Setup (Claude Version)
+## 🔑 API Key Setup
 
 1. Get your API key from [Anthropic Console](https://console.anthropic.com/)
 2. Add it to your `.env` file:
@@ -137,19 +104,6 @@ uv run python test_app.py
    ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
    ```
 3. The app will automatically load the key from the environment
-
-## 🦙 Ollama Setup (Llama Version)
-
-1. Install Ollama from [ollama.ai](https://ollama.ai/)
-2. Pull a Llama model:
-   ```bash
-   ollama pull llama3.1
-   ```
-3. Start the Ollama server:
-   ```bash
-   ollama serve
-   ```
-4. The app will connect to your local Ollama instance
 
 ## 🎉 Success!
 
