@@ -1,8 +1,3 @@
-#!/usr/bin/env python3
-"""
-Test script for the Car Sales Assistant app
-"""
-
 import pandas as pd
 from anthropic import Anthropic
 import os
