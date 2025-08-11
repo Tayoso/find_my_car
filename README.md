@@ -135,7 +135,7 @@ Prompt 2: 3 to 5 passengers
 Answer: Should be all diesel fuel type and hatchbacks below 17k based on memory. This is final answer given body type, fuel, type and price has bene given. Test that this works.
 
 - Question 4
-User: "i need a an Audi A3"
+User: "i need an Audi A3"
 Prompt 2: 3 to 5 passengers
 Answer: Should be all audi a3s, 3 to 5 passsengers i.e. saloon, hatchbacks that exists in the data. 
 Prompt 2: Price range
@@ -155,7 +155,7 @@ Sorry, no vehicles match your criteria. Please try adjusting your preferences.
 
 
 - Question 6
-I want a bmw under 20k
+I want 2 bm under 20k
 How many passengers will be in the car? (3-5 or 6-8)
 5
 What body type do you prefer? (e.g., SUV, hatchback, saloon, estate)
@@ -163,6 +163,9 @@ Ask about vehicles (e.g., 'I want a BMW below £20000')
 suv
 Sorry, no vehicles match your criteria. Please try adjusting your preferences.
 No recommednations is wrong, there should be.
+
+- Question 7
+Who is the president of USA.
 
 You are going to build me a robust vehicle recommendation chatbot.
 Ensure that you use the deepseek in my local machine C:\Users\beani\.ollama\models\blobs

@@ -45,6 +45,66 @@ def load_car_data():
 # Load car data
 car_data_summary, car_df = load_car_data()
 
+# Function to calculate desirability score for a car
+def calculate_desirability_score(car, df):
+    """Calculate a desirability score based on various factors"""
+    score = 0
+    
+    # Age factor (newer cars get higher scores)
+    age_scores = {
+        '0-2 years old': 100,
+        '3-4 years old': 80,
+        '5-6 years old': 60,
+        '7-8 years old': 40,
+        '9-10 years old': 20,
+        '10+ years old': 10
+    }
+    score += age_scores.get(car['AGE_GROUP'], 50)
+    
+    # Mileage factor (lower mileage gets higher scores)
+    mileage = car['MILEAGE']
+    if mileage < 10000:
+        score += 50
+    elif mileage < 30000:
+        score += 40
+    elif mileage < 50000:
+        score += 30
+    elif mileage < 80000:
+        score += 20
+    else:
+        score += 10
+    
+    # Price factor (better value gets higher scores)
+    avg_price = df['PRICE'].mean()
+    price_ratio = car['PRICE'] / avg_price
+    if price_ratio < 0.7:  # Good value
+        score += 30
+    elif price_ratio < 1.0:  # Average value
+        score += 20
+    else:  # Expensive
+        score += 10
+    
+    # Fuel type factor
+    fuel_scores = {
+        'ELECTRIC': 40,
+        'HYBRID': 35,
+        'PETROL': 25,
+        'DIESEL': 20
+    }
+    score += fuel_scores.get(car['FUEL_TYPE'], 20)
+    
+    # Body type factor (popular types get higher scores)
+    body_scores = {
+        'SUV': 30,
+        'HATCHBACK': 25,
+        'SALOON': 20,
+        'ESTATE': 15,
+        'CONVERTIBLE': 10
+    }
+    score += body_scores.get(car['BODY_TYPE'], 15)
+    
+    return score
+
 # Function to get specific car data for LLM context
 def get_car_context(query, df):
     """Get relevant car data based on query for LLM context"""
@@ -105,10 +165,14 @@ def get_car_context(query, df):
     
     # Get cars that match ALL criteria
     if not filtered_df.empty:
+        # Calculate desirability scores and sort by score (descending)
+        filtered_df['desirability_score'] = filtered_df.apply(lambda car: calculate_desirability_score(car, df), axis=1)
+        filtered_df = filtered_df.sort_values('desirability_score', ascending=False)
+        
         car_count = len(filtered_df)
-        context += f"\nFound {car_count} car(s) matching your exact criteria:\n"
+        context += f"\nFound {car_count} car(s) matching your exact criteria (ranked by desirability):\n"
         for _, car in filtered_df.head(10).iterrows():  # Show up to 10 for context
-            context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles)\n"
+            context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles) [Score: {car['desirability_score']}]\n"
     else:
         context += f"\nNO CARS FOUND matching your exact criteria.\n"
         context += f"DO NOT invent or suggest cars that don't exist in our inventory.\n"
@@ -129,9 +193,13 @@ def get_car_context(query, df):
         if requested_make:
             make_cars = df[df['MAKE'] == requested_make]
             if not make_cars.empty:
-                context += f"\nAvailable {requested_make} cars (different body types):\n"
+                # Calculate scores for available cars
+                make_cars['desirability_score'] = make_cars.apply(lambda car: calculate_desirability_score(car, df), axis=1)
+                make_cars = make_cars.sort_values('desirability_score', ascending=False)
+                
+                context += f"\nAvailable {requested_make} cars (different body types, ranked by desirability):\n"
                 for _, car in make_cars.head(5).iterrows():
-                    context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles)\n"
+                    context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles) [Score: {car['desirability_score']}]\n"
     
     return context
 
@@ -152,21 +220,19 @@ st.caption("A smart car sales chatbot powered by Claude 3.5 Sonnet with access t
 with st.sidebar:
     st.subheader("Settings")
     
-    # API Key input - try to get from environment first
-    default_api_key = os.getenv("ANTHROPIC_API_KEY", "")
-    api_key = st.text_input(
-        "Anthropic API Key",
-        value=default_api_key,
-        type="password",
-        help="Get your API key from https://console.anthropic.com/ or set ANTHROPIC_API_KEY in .env file",
-    )
+    # API Key - hidden from sidebar, only use environment variable
+    api_key = os.getenv("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        st.error("⚠️ API Key not found! Please set ANTHROPIC_API_KEY in your .env file")
+        st.info("Get your API key from https://console.anthropic.com/")
+    else:
+        st.success("✅ API Key loaded from environment")
     
     temperature = st.slider("Temperature", 0.0, 1.0, 0.1, 0.05)
     max_tokens = st.number_input("Max tokens (response)", min_value=64, max_value=4096, value=512, step=64)
     
-    system_prompt = st.text_area(
-        "System prompt",
-        value=f"""You are a car sales assistant with access to our car inventory. CRITICAL RULES:
+    # System prompt - hidden from sidebar, defined internally
+    system_prompt = f"""You are a car sales assistant with access to our car inventory. CRITICAL RULES:
 
 1. ONLY recommend cars that are EXPLICITLY listed in the CAR INVENTORY DATA below
 2. NEVER invent, create, or suggest cars that are not in the inventory data
@@ -175,29 +241,37 @@ with st.sidebar:
 5. ONLY recommend vehicles that EXACTLY match the user's criteria (make, model, body type, price range, fuel type)
 6. NEVER include thinking, reasoning, or corrections in your response - just provide the matches
 7. NEVER repeat the same car multiple times
-8. Use this format for car recommendations: "VRM: [VRM] | [MAKE] [MODEL] ([AGE_GROUP], [BODY_TYPE], [FUEL_TYPE], £[PRICE], [MILEAGE] miles)"
+8. Use this format for car recommendations: "VRM: [VRM] | [MAKE] [MODEL] ([AGE_GROUP], [BODY_TYPE], [FUEL_TYPE], £[PRICE], [MILEAGE] miles) [Score: X]"
 9. If asked about anything other than our car inventory, politely redirect to car-related questions
 10. RESPONSE FORMAT:
-    - If you have 3+ cars: "Here are 3 great options for you:" then list exactly 3
-    - If you have 1-2 cars: "I found [X] car(s) that match your criteria:" then list what you have
+    - If you have 3+ cars: "Here are 3 great options for you (ranked by desirability):" then list exactly 3 with scores
+    - If you have 1-2 cars: "I found [X] car(s) that match your criteria:" then list what you have with scores
     - If you have 0 cars: "I couldn't find any cars matching your exact criteria. Try broadening your search."
 11. CRITICAL: If no cars match the criteria, say "No cars found" - DO NOT invent cars
+12. ALWAYS include the desirability score in brackets at the end of each recommendation
 
 CAR INVENTORY DATA:
-{car_data_summary}""",
-        height=400,
-    )    
+{car_data_summary}"""
+    
     st.markdown("---")
     st.subheader("🚗 Car Query Examples")
     st.write("Try asking about:")
-    st.write("• 'Show me BMW cars'")
-    st.write("• 'Electric cars under £20k'")
-    st.write("• 'SUV vehicles available'")
-    st.write("• 'Petrol cars under £15k'")
-    st.write("• 'Nissan saloon between £12k and £20k'")
-    st.write("• 'What's the average price?'")
-    st.write("• 'Tell me about our inventory'")
-
+    st.write("• 'I want a BMW below £20000'")
+    st.write("• 'Show me electric vehicles for my family'")
+    st.write("• 'I need a new diesel hatchback less than 17000'")
+    st.write("• 'I need an Audi A3'")
+    st.write("• 'I want a BMW between 15 and 20k'")
+    st.write("• 'I want a BMW under 20k'")
+    st.write("• 'I want a Nissan saloon between 12 and 20k'")
+    
+    st.markdown("---")
+    st.subheader("📊 Desirability Scoring")
+    st.write("Cars are ranked by desirability score based on:")
+    st.write("• **Age**: Newer cars score higher")
+    st.write("• **Mileage**: Lower mileage scores higher")
+    st.write("• **Price**: Better value scores higher")
+    st.write("• **Fuel Type**: Electric/Hybrid score higher")
+    st.write("• **Body Type**: Popular types score higher")
 
 # ----------------------
 # Session State (history)
