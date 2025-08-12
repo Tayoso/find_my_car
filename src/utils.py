@@ -99,13 +99,22 @@ def get_car_context(query, df):
     
     # Get cars that match ALL criteria
     if not filtered_df.empty:
-        # Sort by desirability score (highest first)
-        filtered_df = filtered_df.sort_values('RETAIL_DESIRABILITY_SCORE', ascending=False)
         car_count = len(filtered_df)
-        context += f"\nFound {car_count} car(s) matching your exact criteria (ranked by desirability):\n"
-        for _, car in filtered_df.head(10).iterrows():  # Show up to 10 for context
-            desirability = f"{car['RETAIL_DESIRABILITY_SCORE']:.2f}"
-            context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
+        context += f"\nFound {car_count} car(s) matching your exact criteria:\n"
+        
+        # Intelligent diversity selection for recommendations
+        if car_count >= 3:
+            # Try to select diverse makes/models when possible
+            diverse_selection = select_diverse_cars(filtered_df, max_cars=10)
+            context += "(Showing diverse selection for better variety):\n"
+            for car in diverse_selection:
+                desirability = f"{car['RETAIL_DESIRABILITY_SCORE']:.2f}"
+                context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
+        else:
+            # If fewer cars, just show what we have
+            for _, car in filtered_df.head(10).iterrows():
+                desirability = f"{car['RETAIL_DESIRABILITY_SCORE']:.2f}"
+                context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
     else:
         context += f"\nNO CARS FOUND matching your exact criteria.\n"
         context += f"DO NOT invent or suggest cars that don't exist in our inventory.\n"
@@ -132,6 +141,40 @@ def get_car_context(query, df):
                     context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
     
     return context
+
+def select_diverse_cars(df, max_cars=10):
+    """
+    Select diverse cars prioritizing different makes/models when possible,
+    but falling back to desirability ranking when diversity isn't possible.
+    """
+    if len(df) <= max_cars:
+        return df.to_dict('records')
+    
+    # First, try to get diverse makes/models
+    diverse_cars = []
+    makes_models_seen = set()
+    
+    # Sort by desirability first to ensure quality
+    df_sorted = df.sort_values('RETAIL_DESIRABILITY_SCORE', ascending=False)
+    
+    for _, car in df_sorted.iterrows():
+        make_model = f"{car['MAKE']}_{car['MODEL']}"
+        
+        if make_model not in makes_models_seen:
+            # This is a new make/model combination
+            diverse_cars.append(car)
+            makes_models_seen.add(make_model)
+            
+            if len(diverse_cars) >= max_cars:
+                break
+    
+    # If we didn't get enough diverse cars, fill with top desirability
+    if len(diverse_cars) < max_cars:
+        remaining_cars = df_sorted[~df_sorted.index.isin([car.name for car in diverse_cars])]
+        for _, car in remaining_cars.head(max_cars - len(diverse_cars)).iterrows():
+            diverse_cars.append(car)
+    
+    return diverse_cars
 
 def stream_claude_chat(messages, api_key: str, temperature: float, max_tokens: int):
     """
