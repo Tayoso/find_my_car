@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import re
+import time
+import random
 from anthropic import Anthropic
 
 def load_car_data():
@@ -67,6 +69,17 @@ def get_car_context(query, df):
             requested_body_type = body_type
             break
     
+    # Extract transmission type
+    transmission_types = ['automatic', 'manual', 'semiautomatic', 'semi-automatic']
+    requested_transmission = None
+    for transmission in transmission_types:
+        if transmission in query_lower:
+            if transmission in ['semiautomatic', 'semi-automatic']:
+                requested_transmission = 'semiAutomatic'
+            else:
+                requested_transmission = transmission
+            break
+    
     # Extract price range
     min_price = None
     max_price = None
@@ -91,6 +104,9 @@ def get_car_context(query, df):
     if requested_body_type:
         filtered_df = filtered_df[filtered_df['BODY_TYPE'] == requested_body_type]
     
+    if requested_transmission:
+        filtered_df = filtered_df[filtered_df['TRANSMISSION_TYPE'] == requested_transmission]
+    
     if min_price is not None:
         filtered_df = filtered_df[filtered_df['PRICE'] >= min_price]
     
@@ -109,12 +125,12 @@ def get_car_context(query, df):
             context += "(Showing diverse selection for better variety):\n"
             for car in diverse_selection:
                 desirability = f"{car['RETAIL_DESIRABILITY_SCORE']:.2f}"
-                context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
+                context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, {car['TRANSMISSION_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
         else:
             # If fewer cars, just show what we have
             for _, car in filtered_df.head(10).iterrows():
                 desirability = f"{car['RETAIL_DESIRABILITY_SCORE']:.2f}"
-                context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
+                context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, {car['TRANSMISSION_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
     else:
         context += f"\nNO CARS FOUND matching your exact criteria.\n"
         context += f"DO NOT invent or suggest cars that don't exist in our inventory.\n"
@@ -124,6 +140,8 @@ def get_car_context(query, df):
             debug_info.append(f"Make: {requested_make}")
         if requested_body_type:
             debug_info.append(f"Body type: {requested_body_type}")
+        if requested_transmission:
+            debug_info.append(f"Transmission: {requested_transmission}")
         if min_price is not None:
             debug_info.append(f"Min price: £{min_price:,}")
         if max_price is not None:
@@ -138,7 +156,7 @@ def get_car_context(query, df):
                 context += f"\nAvailable {requested_make} cars (different body types, ranked by desirability):\n"
                 for _, car in make_cars.head(5).iterrows():
                     desirability = f"{car['RETAIL_DESIRABILITY_SCORE']:.2f}"
-                    context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
+                    context += f"- VRM: {car['VRM']} | {car['MAKE']} {car['MODEL']} ({car['AGE_GROUP']}, {car['BODY_TYPE']}, {car['FUEL_TYPE']}, {car['TRANSMISSION_TYPE']}, £{car['PRICE']:,}, {car['MILEAGE']:,} miles, Desirability: {desirability})\n"
     
     return context
 
@@ -176,12 +194,21 @@ def select_diverse_cars(df, max_cars=10):
     
     return diverse_cars
 
-def stream_claude_chat(messages, api_key: str, temperature: float, max_tokens: int):
+def stream_claude_chat(
+    messages,
+    api_key: str,
+    temperature: float,
+    max_tokens: int,
+    model: str = "claude-3-5-sonnet-20241022",
+    max_retries: int = 3,
+    fallback_model: str = "claude-3-5-haiku-20241022",
+):
     """
-    Yields chunks of text from Claude's streaming chat API.
+    Yields chunks of text from Claude's streaming chat API with retry/backoff.
+    Automatically falls back to a lighter model if the service is overloaded.
     """
     client = Anthropic(api_key=api_key)
-    
+
     # Convert messages to Claude format
     claude_messages = []
     for msg in messages:
@@ -192,24 +219,53 @@ def stream_claude_chat(messages, api_key: str, temperature: float, max_tokens: i
             claude_messages.append({"role": "user", "content": msg["content"]})
         elif msg["role"] == "assistant":
             claude_messages.append({"role": "assistant", "content": msg["content"]})
-    
+
     # Add system message to the beginning
     system_message = messages[0]["content"] if messages and messages[0]["role"] == "system" else ""
-    
-    stream = client.messages.create(
-        model="claude-3-5-sonnet-20241022",
-        messages=claude_messages,
-        system=system_message,
-        stream=True,
-        max_tokens=max_tokens,
-        temperature=temperature,
-    )
-    
-    # The Claude client yields content blocks
-    for chunk in stream:
-        if chunk.type == "content_block_delta":
-            if chunk.delta.text:
-                yield chunk.delta.text
+
+    def _start_stream(selected_model: str):
+        return client.messages.create(
+            model=selected_model,
+            messages=claude_messages,
+            system=system_message,
+            stream=True,
+            max_tokens=max_tokens,
+            temperature=temperature,
+        )
+
+    last_error_text = ""
+    selected_model = model
+
+    for attempt in range(1, max_retries + 1):
+        try:
+            stream = _start_stream(selected_model)
+            for chunk in stream:
+                if getattr(chunk, "type", None) == "content_block_delta":
+                    delta = getattr(chunk, "delta", None)
+                    if delta and getattr(delta, "text", None):
+                        yield delta.text
+            return
+        except Exception as e:  # Broad catch to inspect Anthropic client errors
+            error_text = str(e)
+            last_error_text = error_text
+            is_overloaded = ("Overloaded" in error_text) or ("overloaded_error" in error_text)
+            is_rate_limited = ("rate_limit" in error_text.lower()) or ("RateLimit" in error_text)
+
+            # On overload/rate limit, backoff and optionally switch model
+            if is_overloaded or is_rate_limited:
+                # Switch to fallback model on next attempt if not already
+                if fallback_model and selected_model != fallback_model:
+                    selected_model = fallback_model
+                # Exponential backoff with jitter
+                sleep_seconds = (2 ** (attempt - 1)) + random.uniform(0, 0.5)
+                time.sleep(sleep_seconds)
+                continue
+
+            # Non-retryable error
+            raise
+
+    # If we exhaust retries, surface the last error gracefully in the stream
+    yield "Sorry, the Claude API is currently overloaded. Please try again in a moment."
 
 def is_car_query(prompt):
     """Check if the query is car-related"""
@@ -220,6 +276,6 @@ def is_car_query(prompt):
         'purchase', 'kia', 'mazda', 'peugeot', 'renault', 'seat', 'skoda', 
         'volvo', 'jaguar', 'land rover', 'mini', 'fiat', 'alfa romeo', 
         'citroen', 'dacia', 'ds', 'hyundai', 'mg', 'mitsubishi', 'polestar', 
-        'suzuki', 'vauxhall', 'vrm'
+        'suzuki', 'vauxhall', 'vrm', 'transmission', 'automatic', 'manual', 'semiautomatic', 'engine'
     ]
     return any(keyword in prompt.lower() for keyword in car_keywords)

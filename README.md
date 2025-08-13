@@ -26,9 +26,21 @@ A smart car sales chatbot powered by Claude 3.5 Sonnet with access to car invent
      ANTHROPIC_API_KEY=sk-ant-api03-your-key-here
      ```
 
-4. **Run the app**
+4. **Choose your chatbot version**
+
+   **Original (Recommended):**
    ```bash
    uv run streamlit run claude_chatbot_app.py
+   ```
+
+   **LangChain Enhanced (Advanced Features):**
+   ```bash
+   uv run streamlit run langchain_enhanced_chatbot.py
+   ```
+
+   **LangChain Simple (Overkill for Claude 3.5):**
+   ```bash
+   uv run streamlit run langchain_simple_chatbot.py
    ```
 
 5. **Open your browser**
@@ -51,18 +63,45 @@ The app uses a comprehensive car inventory dataset (`data/stocked_cars.csv`) con
 - **Package Manager**: uv
 - **Data Processing**: Pandas
 - **Environment**: python-dotenv
+- **LangChain**: Memory, conversation history, advanced prompting
+
+## 🚀 LangChain Features
+
+### **Simple Version** (`langchain_simple_chatbot.py`) - *Overkill for Claude 3.5*
+- ⚠️ **Note**: Claude 3.5 Sonnet already has excellent context retention
+- ⚠️ **Note**: LangChain memory is redundant for basic conversation
+- ✅ **Advanced Prompting**: Dynamic prompt templates
+- ✅ **Conversation Chains**: Structured conversation flow
+- ✅ **Extensibility**: Easy to add LangChain features later
+
+### **Enhanced Version** (`langchain_enhanced_chatbot.py`)
+- ✅ All Simple features
+- ✅ **Vector Database**: Semantic search capabilities
+- ✅ **Knowledge Retrieval**: Advanced car matching
+- ✅ **Full LangChain**: Complete framework integration
+
+**💡 Recommendation**: Use the original `claude_chatbot_app.py` for most use cases. Claude 3.5's native context is sufficient for car sales conversations.**
+
+**📖 See `LANGCHAIN_GUIDE.md` for detailed documentation**
 
 ## 📁 Project Structure
 
 ```
 basic_chatbot/
-├── claude_chatbot_app.py    # Main Streamlit application
+├── claude_chatbot_app.py           # Original Streamlit application
+├── langchain_simple_chatbot.py     # LangChain enhanced (recommended)
+├── langchain_enhanced_chatbot.py   # Full LangChain features
 ├── data/
-│   └── stocked_cars.csv     # Car inventory data
-├── pyproject.toml           # Project dependencies
-├── .env                     # Environment variables (API key)
-├── README.md               # This file
-└── test_*.py               # Test scripts
+│   └── stocked_cars.csv            # Car inventory data
+├── src/
+│   ├── utils.py                    # Utility functions
+│   └── prompts.py                  # System prompts
+├── tests/                          # Test suite
+├── pyproject.toml                  # Project dependencies
+├── .env                           # Environment variables (API key)
+├── README.md                      # This file
+├── LANGCHAIN_GUIDE.md             # LangChain documentation
+└── test_*.py                      # Test scripts
 ```
 
 ## 🧪 Testing
@@ -70,7 +109,11 @@ basic_chatbot/
 Run the test suite to verify everything is working:
 
 ```bash
-uv run python test_app.py
+# Quick test run
+uv run python -m pytest tests/ -v
+
+# Full test with coverage
+uv run python -m pytest tests/ --cov=src --cov-report=term-missing
 ```
 
 ## 🔑 API Key Setup
@@ -84,7 +127,7 @@ uv run python test_app.py
 
 
 
-#### Load data works how exactly?
+
 
 
 
